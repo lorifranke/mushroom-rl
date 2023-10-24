@@ -53,6 +53,21 @@ class DataLogger(object):
             current_data = np.array(self._data_dict[name])
             np.save(path, current_data)
 
+    def log_numpy_array(self, **kwargs):
+        """
+        Log numpy arrays.
+
+        Args:
+            **kwargs: set of named arrays to be saved. The argument name
+                will be used to identify the given quantity and as base file name.
+
+        """
+        for name, data in kwargs.items():
+            filename = name + self._suffix + '.npy'
+            path = self._results_dir / filename
+
+            np.save(path, data)
+
     def log_agent(self, agent, epoch=None, full_save=False):
         """
         Log agent into the log folder.
@@ -97,8 +112,6 @@ class DataLogger(object):
         path = self._results_dir / filename
 
         with path.open(mode='wb') as f:
-            print(type(f))
-            print('filename')
             pickle.dump(dataset, f)
 
     @property

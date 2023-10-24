@@ -62,18 +62,18 @@ To build environments, you may need to pass additional parameters.
 An example of this is the ``Gym`` environment which wraps most OpenAI Gym environments, except the Atari ones, which
 uses the ``Atari`` environment to implement proper preprocessing.
 
-If you want to build the ``Pendulum-v0`` gym environment you need to pass the environment name as a parameter:
+If you want to build the ``Pendulum-v1`` gym environment you need to pass the environment name as a parameter:
 
 .. code-block:: python
 
-    env = Environment.make('Gym', 'Pendulum-v0')
+    env = Environment.make('Gym', 'Pendulum-v1')
 
 However, for environments that are interfaces to other libraries such as ``Gym``, ``Atari`` or ``DMControl`` a notation
 with a dot separator is supported. For example to create the pendulum you can also use:
 
 .. code-block:: python
 
-    env = Environment.make('Gym.Pendulum-v0')
+    env = Environment.make('Gym.Pendulum-v1')
 
 Or, to create the ``hopper`` environment with ``hop`` task from DeepMind control suite you can use:
 
@@ -159,14 +159,14 @@ visualization tool for 2D Reinforcement Learning algorithms. The viewer class ha
 simply draw two circles representing the agent and the goal area:
 
 .. literalinclude:: code/room_env.py
-   :lines: 89-97
+   :lines: 89-102
 
 For more information about the viewer, refer to the class documentation.
 
 To conclude our environment, it's also possible to register it as specified in the previous section of this tutorial:
 
 .. literalinclude:: code/room_env.py
-   :lines: 100-101
+   :lines: 105-106
 
 
 Learning in the toy environment
@@ -179,17 +179,17 @@ We first import all necessary classes and utilities, then we construct the envir
 reproducibility).
 
 .. literalinclude:: code/room_env.py
-   :lines: 103-116
+   :lines: 108-121
 
 We now proceed then to create the agent policy, which is a linear policy using tiles features, similar
 to the one used by the Mountain Car experiment from R. Sutton book.
 
 .. literalinclude:: code/room_env.py
-   :lines: 118-139
+   :lines: 123-144
 
 Finally, using the ``Core`` class we set up an RL experiment. We first evaluate the initial policy for three episodes on the
 environment. Then we learn the task using the algorithm build above for 20000 steps.
 In the end, we evaluate the learned policy for 3 more episodes.
 
 .. literalinclude:: code/room_env.py
-   :lines: 141-
+   :lines: 146-

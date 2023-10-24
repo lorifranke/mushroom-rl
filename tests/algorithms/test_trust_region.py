@@ -11,7 +11,7 @@ from mushroom_rl.core import Agent
 
 from mushroom_rl.algorithms.actor_critic import PPO, TRPO
 from mushroom_rl.core import Core
-from mushroom_rl.environments import Gym
+from mushroom_rl.environments import InvertedPendulum
 from mushroom_rl.policy import GaussianTorchPolicy
 
 
@@ -32,8 +32,7 @@ class Network(nn.Module):
 
 
 def learn(alg, alg_params):
-    mdp = Gym('Pendulum-v0', 200, .99)
-    mdp.seed(1)
+    mdp = InvertedPendulum(horizon=50)
     np.random.seed(1)
     torch.manual_seed(1)
     torch.cuda.manual_seed(1)
@@ -69,8 +68,7 @@ def test_PPO():
                   n_epochs_policy=4, batch_size=64, eps_ppo=.2, lam=.95)
     policy = learn(PPO, params).policy
     w = policy.get_weights()
-    w_test = np.array([-1.6293062, 1.0408604, -3.5757786e-1, 2.6958251e-1,
-                       -8.7002787e-4])
+    w_test = np.array([0.9378777, -1.8841006 , -0.13794397, -0.00241548])
 
     assert np.allclose(w, w_test)
 
@@ -98,8 +96,7 @@ def test_TRPO():
                   n_epochs_cg=10, cg_damping=1e-2, cg_residual_tol=1e-10)
     policy = learn(TRPO, params).policy
     w = policy.get_weights()
-    w_test = np.array([-1.5759772, 1.0822705, -0.37794656, 0.29728204,
-                       -0.0396419])
+    w_test = np.array([9.5286590e-01, -1.9460459e+00, -1.2838534e-01, 8.5962377e-04])
 
     assert np.allclose(w, w_test)
 

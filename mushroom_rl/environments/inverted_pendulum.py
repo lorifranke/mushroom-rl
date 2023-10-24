@@ -38,16 +38,15 @@ class InvertedPendulum(Environment):
         self._g = g
         self._mu = mu
         self._random = random_start
-        self._dt = .01
         self._max_u = max_u
         self._max_omega = 5 / 2 * np.pi
         high = np.array([np.pi, self._max_omega])
 
         # MDP properties
+        dt = .01
         observation_space = spaces.Box(low=-high, high=high)
-        action_space = spaces.Box(low=np.array([-max_u]),
-                                  high=np.array([max_u]))
-        mdp_info = MDPInfo(observation_space, action_space, gamma, horizon)
+        action_space = spaces.Box(low=np.array([-max_u]), high=np.array([max_u]))
+        mdp_info = MDPInfo(observation_space, action_space, gamma, horizon, dt)
 
         # Visualization
         self._viewer = Viewer(2.5 * l, 2.5 * l)
@@ -74,13 +73,11 @@ class InvertedPendulum(Environment):
 
     def step(self, action):
         u = self._bound(action[0], -self._max_u, self._max_u)
-        new_state = odeint(self._dynamics, self._state, [0, self._dt],
-                           (u,))
+        new_state = odeint(self._dynamics, self._state, [0, self.info.dt], args=(u.item(),))
 
         self._state = np.array(new_state[-1])
         self._state[0] = normalize_angle(self._state[0])
-        self._state[1] = self._bound(self._state[1], -self._max_omega,
-                                     self._max_omega)
+        self._state[1] = self._bound(self._state[1], -self._max_omega, self._max_omega)
 
         reward = np.cos(self._state[0])
 
@@ -88,7 +85,7 @@ class InvertedPendulum(Environment):
 
         return self._state, reward, False, {}
 
-    def render(self, mode='human'):
+    def render(self, record=False):
         start = 1.25 * self._l * np.ones(2)
         end = 1.25 * self._l * np.ones(2)
 
@@ -98,10 +95,13 @@ class InvertedPendulum(Environment):
         self._viewer.line(start, end)
         self._viewer.circle(start, self._l / 40)
         self._viewer.circle(end, self._l / 20)
-        self._viewer.torque_arrow(start, -self._last_u, self._max_u,
-                                  self._l / 5)
+        self._viewer.torque_arrow(start, -self._last_u, self._max_u, self._l / 5)
 
-        self._viewer.display(self._dt)
+        frame = self._viewer.get_frame() if record else None
+
+        self._viewer.display(self.info.dt)
+
+        return frame
 
     def stop(self):
         self._viewer.close()
@@ -111,7 +111,8 @@ class InvertedPendulum(Environment):
         omega = self._bound(state[1], -self._max_omega, self._max_omega)
 
         d_theta = omega
-        d_omega = (-self._mu * omega + self._m * self._g * self._l * np.sin(
-            theta) + u) / (self._m * self._l**2)
+        d_omega = (-self._mu * omega + self._m * self._g * self._l * np.sin(theta) + u) / (self._m * self._l**2)
 
-        return d_theta, d_omega
+        ds = [d_theta, d_omega]
+
+        return ds

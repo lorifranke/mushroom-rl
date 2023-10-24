@@ -6,7 +6,7 @@ from mushroom_rl.environments import *
 from mushroom_rl.features import Features
 from mushroom_rl.features.basis import PolynomialBasis, GaussianRBF
 from mushroom_rl.policy import EpsGreedy
-from mushroom_rl.utils.dataset import episodes_length
+from mushroom_rl.utils.dataset import compute_episodes_length
 from mushroom_rl.utils.parameters import Parameter
 
 
@@ -50,7 +50,7 @@ def experiment():
     core.evaluate(n_episodes=3, render=True)
 
     # Train
-    core.learn(n_episodes=100, n_episodes_per_fit=100)
+    core.learn(n_episodes=500, n_episodes_per_fit=500)
 
     # Test
     test_epsilon = Parameter(0.)
@@ -60,7 +60,7 @@ def experiment():
 
     core.evaluate(n_steps=100, render=True)
 
-    return np.mean(episodes_length(dataset))
+    return np.mean(compute_episodes_length(dataset))
 
 
 if __name__ == '__main__':

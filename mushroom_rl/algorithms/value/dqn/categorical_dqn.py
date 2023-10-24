@@ -6,14 +6,17 @@ import torch.nn.functional as F
 from mushroom_rl.algorithms.value.dqn import AbstractDQN
 from mushroom_rl.approximators.parametric.torch_approximator import *
 
+eps = torch.finfo(torch.float32).eps
 
 def categorical_loss(input, target, reduction='sum'):
     input = input.clamp(1e-5)
 
+    loss = -torch.sum(target * torch.log(input), 1)
+
     if reduction == 'sum':
-        return -torch.sum(target * torch.log(input))
+        return loss.mean()
     elif reduction == 'none':
-        return -torch.sum(target * torch.log(input), 1)
+        return loss
     else:
         raise ValueError
 
@@ -31,7 +34,7 @@ class CategoricalNetwork(nn.Module):
         self._v_max = v_max
 
         delta = (self._v_max - self._v_min) / (self._n_atoms - 1)
-        self._a_values = torch.arange(self._v_min, self._v_max + delta, delta)
+        self._a_values = torch.arange(self._v_min, self._v_max + eps, delta)
         if use_cuda:
             self._a_values = self._a_values.cuda()
 
@@ -98,7 +101,7 @@ class CategoricalDQN(AbstractDQN):
         self._v_min = v_min
         self._v_max = v_max
         self._delta = (v_max - v_min) / (n_atoms - 1)
-        self._a_values = np.arange(v_min, v_max + self._delta, self._delta)
+        self._a_values = np.arange(v_min, v_max + eps, self._delta)
 
         self._add_save_attr(
             _n_atoms='primitive',
@@ -110,7 +113,7 @@ class CategoricalDQN(AbstractDQN):
 
         super().__init__(mdp_info, policy, TorchApproximator, **params)
 
-    def fit(self, dataset):
+    def fit(self, dataset, **info):
         self._replay_memory.add(dataset)
         if self._replay_memory.initialized:
             state, action, reward, next_state, absorbing, _ =\
@@ -130,8 +133,8 @@ class CategoricalDQN(AbstractDQN):
                                                             self._v_max)
 
             b = (bell_a - self._v_min) / self._delta
-            l = np.floor(b).astype(np.int)
-            u = np.ceil(b).astype(np.int)
+            l = np.floor(b).astype(int)
+            u = np.ceil(b).astype(int)
 
             m = np.zeros((self._batch_size.get_value(), self._n_atoms))
             for i in range(self._n_atoms):

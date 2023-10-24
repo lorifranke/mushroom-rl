@@ -1,9 +1,12 @@
+import time
+
 import gym
 from gym import spaces as gym_spaces
 
+import numpy as np
+
 try:
     import pybullet_envs
-    import time
     pybullet_found = True
 except ImportError:
     pybullet_found = False
@@ -59,18 +62,17 @@ class Gym(Environment):
                 else:
                     self.env = wrapper(self.env, *args, **env_args)
 
-        if horizon is None:
-            horizon = self.env._max_episode_steps
-        self.env._max_episode_steps = np.inf  # Hack to ignore gym time limit.
+        horizon = self._set_horizon(self.env, horizon)
 
         # MDP properties
         assert not isinstance(self.env.observation_space,
                               gym_spaces.MultiDiscrete)
         assert not isinstance(self.env.action_space, gym_spaces.MultiDiscrete)
 
+        dt = self.env.unwrapped.dt if hasattr(self.env.unwrapped, "dt") else 0.1
         action_space = self._convert_gym_space(self.env.action_space)
         observation_space = self._convert_gym_space(self.env.observation_space)
-        mdp_info = MDPInfo(observation_space, action_space, gamma, horizon)
+        mdp_info = MDPInfo(observation_space, action_space, gamma, horizon, dt)
 
         if isinstance(action_space, Discrete):
             self._convert_action = lambda a: a[0]
@@ -94,10 +96,19 @@ class Gym(Environment):
 
         return np.atleast_1d(obs), reward, absorbing, info
 
-    def render(self, mode='human'):
+    def render(self, record=False):
         if self._first or self._not_pybullet:
-            self.env.render(mode=mode)
+            self.env.render(mode='human')
+
             self._first = False
+            time.sleep(self.info.dt)
+
+            if record:
+                return self.env.render(mode='rgb_array')
+            else:
+                return None
+
+        return None
 
     def stop(self):
         try:
@@ -107,6 +118,22 @@ class Gym(Environment):
             pass
 
     @staticmethod
+    def _set_horizon(env, horizon):
+
+        while not hasattr(env, '_max_episode_steps') and env.env != env.unwrapped:
+                env = env.env
+
+        if horizon is None:
+            if not hasattr(env, '_max_episode_steps'):
+                raise RuntimeError('This gym environment has no specified time limit!')
+            horizon = env._max_episode_steps
+
+        if hasattr(env, '_max_episode_steps'):
+            env._max_episode_steps = np.inf  # Hack to ignore gym time limit.
+
+        return horizon
+
+    @staticmethod
     def _convert_gym_space(space):
         if isinstance(space, gym_spaces.Discrete):
             return Discrete(space.n)
@@ -114,3 +141,4 @@ class Gym(Environment):
             return Box(low=space.low, high=space.high, shape=space.shape)
         else:
             raise ValueError
+

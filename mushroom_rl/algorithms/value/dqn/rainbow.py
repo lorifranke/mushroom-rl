@@ -9,6 +9,7 @@ from mushroom_rl.algorithms.value.dqn.noisy_dqn import NoisyNetwork
 from mushroom_rl.approximators.parametric.torch_approximator import *
 from mushroom_rl.utils.replay_memory import PrioritizedReplayMemory
 
+eps = torch.finfo(torch.float32).eps
 
 class RainbowNetwork(nn.Module):
     def __init__(self, input_shape, output_shape, features_network, n_atoms,
@@ -23,7 +24,7 @@ class RainbowNetwork(nn.Module):
         self._v_max = v_max
 
         delta = (self._v_max - self._v_min) / (self._n_atoms - 1)
-        self._a_values = torch.arange(self._v_min, self._v_max + delta, delta)
+        self._a_values = torch.arange(self._v_min, self._v_max + eps, delta)
         if use_cuda:
             self._a_values = self._a_values.cuda()
 
@@ -97,7 +98,7 @@ class Rainbow(AbstractDQN):
         self._v_min = v_min
         self._v_max = v_max
         self._delta = (v_max - v_min) / (n_atoms - 1)
-        self._a_values = np.arange(v_min, v_max + self._delta, self._delta)
+        self._a_values = np.arange(v_min, v_max + eps, self._delta)
         self._n_steps_return = n_steps_return
         self._sigma_coeff = sigma_coeff
 
@@ -118,7 +119,7 @@ class Rainbow(AbstractDQN):
 
         super().__init__(mdp_info, policy, TorchApproximator, **params)
 
-    def fit(self, dataset):
+    def fit(self, dataset, **info):
         self._replay_memory.add(dataset, np.ones(len(dataset)) * self._replay_memory.max_priority,
                                 n_steps_return=self._n_steps_return, gamma=self.mdp_info.gamma)
         if self._replay_memory.initialized:
@@ -139,8 +140,8 @@ class Rainbow(AbstractDQN):
                                                             self._v_max)
 
             b = (bell_a - self._v_min) / self._delta
-            l = np.floor(b).astype(np.int)
-            u = np.ceil(b).astype(np.int)
+            l = np.floor(b).astype(int)
+            u = np.ceil(b).astype(int)
 
             m = np.zeros((self._batch_size.get_value(), self._n_atoms))
             for i in range(self._n_atoms):

@@ -2,11 +2,12 @@ import numpy as np
 
 from mushroom_rl.features import Features
 from mushroom_rl.features.tiles import Tiles, VoronoiTiles
-from mushroom_rl.features.basis import GaussianRBF, FourierBasis
-from mushroom_rl.features.tensors import GaussianRBFTensor, RandomFourierBasis
+from mushroom_rl.features.basis import GaussianRBF, FourierBasis, PolynomialBasis
+from mushroom_rl.features.tensors import GaussianRBFTensor, VonMisesBFTensor, RandomFourierBasis
 
 
 def test_tiles():
+    np.random.seed(1)
     tilings = Tiles.generate(3, [3, 3],
                              np.array([0., -.5]),
                              np.array([1., .5]))
@@ -30,6 +31,7 @@ def test_tiles():
 
 
 def test_tiles_voronoi():
+    np.random.seed(1)
     tilings_list = [
         VoronoiTiles.generate(3, 10,
                               low=np.array([0., -.5]),
@@ -59,7 +61,30 @@ def test_tiles_voronoi():
             assert features.size == y[i].size
 
 
+def test_polynomials():
+    np.random.seed(1)
+    low = np.array([0., -.5])
+    high = np.array([1., .5])
+    pol = PolynomialBasis.generate(3, 2, low, high)
+    features = Features(basis_list=pol)
+
+    x = np.random.rand(3, 2) + [0., -.5]
+
+    y = features(x)
+    print(y)
+
+    y_test = np.array([[1., -0.16595599, 0.44064899, 0.02754139, -0.07312834, 0.19417153, -0.00457066, 0.01213609,
+                        -0.03222393,  0.08556149],
+                       [1., -0.99977125, -0.39533485, 0.99954255, 0.39524442, 0.15628965, -0.99931391, -0.39515401,
+                        -0.1562539,  -0.06178675],
+                       [1., -0.70648822, -0.81532281, 0.4991256, 0.57601596, 0.66475129, -0.35262636, -0.40694849,
+                        -0.46963895, -0.54198689]])
+
+    assert np.allclose(y, y_test)
+
+
 def test_basis():
+    np.random.seed(1)
     low = np.array([0., -.5])
     high = np.array([1., .5])
     rbf = GaussianRBF.generate([3, 3], high, low)
@@ -83,17 +108,20 @@ def test_basis():
 
 
 def test_tensor():
+    np.random.seed(1)
     low = np.array([0., -.5])
     high = np.array([1., .5])
     rbf = GaussianRBFTensor.generate([3, 3], low, high)
+    rbf += VonMisesBFTensor.generate([3, 3], low, high, normalized=True)
     rbf += RandomFourierBasis.generate(0.1, 6, 2)
+
     features = Features(tensor_list=rbf)
 
     x = np.random.rand(10, 2) + [0., -.5]
 
     y = features(x)
 
-    assert y.shape == (10, 15)
+    assert y.shape == (10, 24)
 
     for i, x_i in enumerate(x):
         assert np.allclose(features(x_i), y[i])
@@ -112,6 +140,7 @@ def test_tensor():
 
 
 def test_basis_and_tensors():
+    np.random.seed(1)
     low = np.array([0., -.5])
     high = np.array([1., .5])
     basis_rbf = GaussianRBF.generate([3, 3], low, high)

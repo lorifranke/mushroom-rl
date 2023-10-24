@@ -20,8 +20,30 @@ except ImportError:
     pass
 
 try:
+    MiniGrid = None
+    from .minigrid_env import MiniGrid
+    MiniGrid.register()
+except ImportError:
+    pass
+
+try:
+    iGibson = None
+    from .igibson_env import iGibson
+    iGibson.register()
+except ImportError:
+    import logging
+    logging.disable(logging.NOTSET)
+
+try:
+    Habitat = None
+    from .habitat_env import Habitat
+    Habitat.register()
+except ImportError:
+    pass
+
+try:
     MuJoCo = None
-    from .mujoco import MuJoCo
+    from .mujoco import MuJoCo, MultiMuJoCo
     from .mujoco_envs import *
 except ImportError:
     pass
@@ -30,6 +52,7 @@ except ImportError:
 try:
     PyBullet = None
     from .pybullet import PyBullet
+    from .pybullet_envs import *
 except ImportError:
     pass
 
@@ -62,4 +85,3 @@ Segway.register()
 
 from .ship_steering import ShipSteering
 ShipSteering.register()
-

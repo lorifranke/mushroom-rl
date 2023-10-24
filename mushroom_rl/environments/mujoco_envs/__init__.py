@@ -1,5 +1,8 @@
 from .ball_in_a_cup import BallInACup
-from .humanoid_gait import HumanoidGait
+from .air_hockey import AirHockeyHit, AirHockeyDefend, AirHockeyPrepare, AirHockeyRepel
 
 BallInACup.register()
-HumanoidGait.register()
+AirHockeyHit.register()
+AirHockeyDefend.register()
+AirHockeyPrepare.register()
+AirHockeyRepel.register()

@@ -31,7 +31,7 @@ class PolicyGradient(Agent):
 
         super().__init__(mdp_info, policy, features)
 
-    def fit(self, dataset):
+    def fit(self, dataset, **info):
         J = list()
         self.df = 1.
         self.J_episode = 0.
@@ -48,7 +48,9 @@ class PolicyGradient(Agent):
                 self.J_episode = 0.
                 self.df = 1.
                 self._init_update()
-
+        
+        assert len(J) > 1, "More than one episode is needed to compute the gradient"
+        
         self._update_parameters(J)
 
     def _update_parameters(self, J):

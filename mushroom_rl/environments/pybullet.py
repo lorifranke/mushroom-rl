@@ -21,8 +21,8 @@ class PyBullet(Environment):
         Args:
             files (dict): dictionary of the URDF/MJCF/SDF files to load (key) and parameters dictionary (value);
             actuation_spec (list): A list of tuples specifying the names of the
-                joints which should be controllable by the agent and tehir control mode.
-                 Can be left empty when all actuators should be used in position control;
+                joints which should be controllable by the agent and their control mode.
+                Can be left empty when all actuators should be used in position control;
             observation_spec (list): A list containing the names of data that
                 should be made available to the agent as an observation and
                 their type (ObservationType). An entry in the list is given by:
@@ -73,7 +73,7 @@ class PyBullet(Environment):
         action_space = Box(*self._indexer.action_limits)
 
         observation_space = Box(*self._indexer.observation_limits)
-        mdp_info = MDPInfo(observation_space, action_space, gamma, horizon)
+        mdp_info = MDPInfo(observation_space, action_space, gamma, horizon, self.dt)
 
         # Let the child class modify the mdp_info data structure
         mdp_info = self._modify_mdp_info(mdp_info)
@@ -95,11 +95,16 @@ class PyBullet(Environment):
 
         return observation
 
-    def render(self):
-        self._viewer.display()
+    def render(self, record=False):
+        frame = self._viewer.display()
+
+        if record:
+            return frame
+        else:
+            return None
 
     def stop(self):
-        pass
+        self._viewer.close()
 
     def step(self, action):
         curr_state = self._state.copy()
@@ -245,16 +250,16 @@ class PyBullet(Environment):
     def _simulation_pre_step(self):
         """
         Allows information to be accesed and changed at every intermediate step
-            before taking a step in the pybullet simulation.
-            Can be usefull to apply an external force/torque to the specified bodies.
+        before taking a step in the pybullet simulation.
+        Can be usefull to apply an external force/torque to the specified bodies.
         """
         pass
 
     def _simulation_post_step(self):
         """
         Allows information to be accesed at every intermediate step
-            after taking a step in the pybullet simulation.
-            Can be usefull to average forces over all intermediate steps.
+        after taking a step in the pybullet simulation.
+        Can be usefull to average forces over all intermediate steps.
         """
         pass
 

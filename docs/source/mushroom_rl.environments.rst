@@ -18,7 +18,7 @@ Environments
 Atari
 ~~~~~
 
-.. automodule:: mushroom_rl.environments.atari
+.. autoclass:: mushroom_rl.environments.atari.Atari
     :members:
     :private-members:
     :inherited-members:
@@ -69,6 +69,31 @@ Gym
     :inherited-members:
     :show-inheritance:
 
+Habitat
+~~~~~~~
+
+.. autoclass:: mushroom_rl.environments.habitat_env.Habitat
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+.. autoclass:: mushroom_rl.environments.habitat_env.HabitatNavigationWrapper
+    :members:
+
+.. autoclass:: mushroom_rl.environments.habitat_env.HabitatRearrangeWrapper
+    :members:
+
+
+iGibson
+~~~~~~~
+
+.. autoclass:: mushroom_rl.environments.igibson_env.iGibson
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
 Inverted pendulum
 ~~~~~~~~~~~~~~~~~
 
@@ -96,6 +121,16 @@ LQR
     :inherited-members:
     :show-inheritance:
 
+Minigrid
+~~~~~~~~
+
+.. automodule:: mushroom_rl.environments.minigrid_env
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+
 Mujoco
 ~~~~~~
 
@@ -105,10 +140,101 @@ Mujoco
     :inherited-members:
     :show-inheritance:
 
+Air Hockey
+^^^^^^^^^^
+
+.. automodule:: mushroom_rl.environments.mujoco_envs.air_hockey.base
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+.. automodule:: mushroom_rl.environments.mujoco_envs.air_hockey.single
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+.. automodule:: mushroom_rl.environments.mujoco_envs.air_hockey.double
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+.. automodule:: mushroom_rl.environments.mujoco_envs.air_hockey.hit
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+.. automodule:: mushroom_rl.environments.mujoco_envs.air_hockey.defend
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+.. automodule:: mushroom_rl.environments.mujoco_envs.air_hockey.prepare
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+.. automodule:: mushroom_rl.environments.mujoco_envs.air_hockey.repel
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+Ball In A Cup
+^^^^^^^^^^^^^
+
+.. automodule:: mushroom_rl.environments.mujoco_envs.ball_in_a_cup
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+
 Puddle World
 ~~~~~~~~~~~~
 
 .. automodule:: mushroom_rl.environments.puddle_world
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+Pybullet
+~~~~~~~~
+
+.. automodule:: mushroom_rl.environments.pybullet
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+Air Hockey
+^^^^^^^^^^
+
+.. automodule:: mushroom_rl.environments.pybullet_envs.air_hockey.base
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+.. automodule:: mushroom_rl.environments.pybullet_envs.air_hockey.single
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+.. automodule:: mushroom_rl.environments.pybullet_envs.air_hockey.hit
+    :members:
+    :private-members:
+    :inherited-members:
+    :show-inheritance:
+
+.. automodule:: mushroom_rl.environments.pybullet_envs.air_hockey.defend
     :members:
     :private-members:
     :inherited-members:

@@ -17,7 +17,8 @@ class BoostedFQI(FQI):
         self._prediction = 0.
         self._next_q = 0.
         self._idx = 0
-        approximator_params['n_models'] = n_iterations
+
+        assert approximator_params['n_models'] == n_iterations
 
         self._add_save_attr(
             _n_iterations='primitive',
@@ -30,8 +31,8 @@ class BoostedFQI(FQI):
 
         super().__init__(mdp_info, policy, approximator, n_iterations, approximator_params, fit_params, quiet)
 
-    def fit(self, x):
-        state, action, reward, next_state, absorbing, _ = parse_dataset(x)
+    def fit(self, dataset, **info):
+        state, action, reward, next_state, absorbing, _ = parse_dataset(dataset)
         for _ in trange(self._n_iterations(), dynamic_ncols=True, disable=self._quiet, leave=False):
             if self._target is None:
                 self._target = reward

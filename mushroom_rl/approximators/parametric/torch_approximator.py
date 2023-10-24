@@ -34,9 +34,9 @@ class TorchApproximator(Serializable):
                 method of the network;
             use_cuda (bool, False): if True, runs the network on the GPU;
             reinitialize (bool, False): if True, the approximator is re
-            initialized at every fit call. To perform the initialization, the
-            weights_init method must be defined properly for the selected
-            model network.
+                initialized at every fit call. To perform the initialization, 
+                the weights_init method must be defined properly for the 
+                selected model network.
             dropout (bool, False): if True, dropout is applied only during
                 train;
             quiet (bool, True): if False, shows two progress bars, one for
@@ -96,9 +96,9 @@ class TorchApproximator(Serializable):
 
         """
         if not self._use_cuda:
-            torch_args = [torch.from_numpy(x) if isinstance(x, np.ndarray) else x
+            torch_args = [torch.as_tensor(x) if isinstance(x, np.ndarray) else x
                           for x in args]
-            val = self.network.forward(*torch_args, **kwargs)
+            val = self.network(*torch_args, **kwargs)
 
             if output_tensor:
                 return val
@@ -107,10 +107,9 @@ class TorchApproximator(Serializable):
             else:
                 val = val.detach().numpy()
         else:
-            torch_args = [torch.from_numpy(x).cuda()
+            torch_args = [torch.as_tensor(x).cuda()
                           if isinstance(x, np.ndarray) else x.cuda() for x in args]
-            val = self.network.forward(*torch_args,
-                                       **kwargs)
+            val = self.network(*torch_args, **kwargs)
 
             if output_tensor:
                 return val
@@ -162,8 +161,7 @@ class TorchApproximator(Serializable):
             use_weights = False
 
         if 0 < validation_split <= 1:
-            train_len = np.ceil(len(args[0]) * validation_split).astype(
-                np.int)
+            train_len = np.ceil(len(args[0]) * validation_split).astype(int)
             train_args = [a[:train_len] for a in args]
             val_args = [a[train_len:] for a in args]
         else:
@@ -241,15 +239,15 @@ class TorchApproximator(Serializable):
 
     def _compute_batch_loss(self, batch, use_weights, kwargs):
         if use_weights:
-            weights = torch.from_numpy(batch[-1]).type(torch.float)
+            weights = torch.as_tensor(batch[-1]).type(torch.float)
             if self._use_cuda:
                 weights = weights.cuda()
             batch = batch[:-1]
 
         if not self._use_cuda:
-            torch_args = [torch.from_numpy(x) for x in batch]
+            torch_args = [torch.as_tensor(x) for x in batch]
         else:
-            torch_args = [torch.from_numpy(x).cuda() for x in batch]
+            torch_args = [torch.as_tensor(x).cuda() for x in batch]
 
         x = torch_args[:-self._n_fit_targets]
 
@@ -260,7 +258,7 @@ class TorchApproximator(Serializable):
         else:
             output_type = y_hat.dtype
 
-        y = [y_i.clone().detach().requires_grad_(False).type(output_type) for y_i
+        y = [y_i.clone().detach().type(output_type) for y_i
              in torch_args[-self._n_fit_targets:]]
 
         if self._use_cuda:
@@ -319,9 +317,9 @@ class TorchApproximator(Serializable):
 
         """
         if not self._use_cuda:
-            torch_args = [torch.from_numpy(np.atleast_2d(x)) for x in args]
+            torch_args = [torch.as_tensor(np.atleast_2d(x)) for x in args]
         else:
-            torch_args = [torch.from_numpy(np.atleast_2d(x)).cuda()
+            torch_args = [torch.as_tensor(np.atleast_2d(x)).cuda()
                           for x in args]
 
         y_hat = self.network(*torch_args, **kwargs)
@@ -352,6 +350,11 @@ class TorchApproximator(Serializable):
 
     @property
     def loss_fit(self):
+        """
+        Returns:
+            The average loss of the last epoch of the last fit call.
+            
+        """
         return self._last_loss
 
     def _post_load(self):

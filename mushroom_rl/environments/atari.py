@@ -91,7 +91,8 @@ class Atari(Environment):
             low=0., high=255., shape=(history_length, self._img_size[1], self._img_size[0]))
         horizon = np.inf  # the gym time limit is used.
         gamma = .99
-        mdp_info = MDPInfo(observation_space, action_space, gamma, horizon)
+        dt = 1/60
+        mdp_info = MDPInfo(observation_space, action_space, gamma, horizon, dt)
 
         super().__init__(mdp_info)
 
@@ -111,6 +112,8 @@ class Atari(Environment):
         return LazyFrames(list(self._state), self._history_length)
 
     def step(self, action):
+        action = action[0]
+
         # Force FIRE action to start episodes in games with lives
         if self._force_fire:
             obs, _, _, _ = self.env.env.step(1)
@@ -121,10 +124,11 @@ class Atari(Environment):
 
         obs, reward, absorbing, info = self.env.step(action)
         self._real_reset = absorbing
-        if info['ale.lives'] != self._lives:
+        
+        if info['lives'] != self._lives:
             if self._episode_ends_at_life:
                 absorbing = True
-            self._lives = info['ale.lives']
+            self._lives = info['lives']
             self._force_fire = self.env.unwrapped.get_action_meanings()[
                 1] == 'FIRE'
 
@@ -133,8 +137,13 @@ class Atari(Environment):
         return LazyFrames(list(self._state),
                           self._history_length), reward, absorbing, info
 
-    def render(self, mode='human'):
-        self.env.render(mode=mode)
+    def render(self, record=False):
+        self.env.render(mode='human')
+
+        if record:
+            return self.env.render(mode='rgb_array')
+        else:
+            return None
 
     def stop(self):
         self.env.close()
