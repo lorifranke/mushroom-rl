@@ -1,9 +1,9 @@
 from tqdm import tqdm
-
+import uuid
 from collections import defaultdict
 from mushroom_rl.utils.record import VideoRecorder
 import requests
-import os
+import datetime
 
 
 class Core(object):
@@ -38,8 +38,8 @@ class Core(object):
         self._n_steps_per_fit = None
         self._n_episodes_per_fit = None
 
-        self.api_base_url = os.getenv("API_URL", "http://localhost:8000")
-        self.api_endpoint = f"{self.api_base_url}/api/logs"
+        # self.api_base_url = os.getenv("API_URL", "http://localhost:8000")
+        # self.api_endpoint = f"{self.api_base_url}/api/logs"
         # Initialize buffer
         self.buffer = []
 
@@ -48,21 +48,22 @@ class Core(object):
         self._record = self._build_recorder_class(**record_dictionary)
 
     def _log_to_api(self):
-        # Send buffer to REST API
-        for log in self.buffer:
-            payload = {
-                "timestamp": None,  # The Logger class will handle the timestamp
-                "log_level": "INFO",
-                "name_obj_logging": "YourClass",
-                "message": log
-            }
-            try:
-                response = requests.post(f"{self.api_base_url}/api/logs", json=payload)
-                if response.status_code != 200:
-                    print(f"Failed to send log to API. Status Code: {response.status_code}")
-            except Exception as e:
-                print(f"Exception while sending log to API: {e}")
-        self.buffer = []
+        pass
+        # # Send buffer to REST API
+        # for log in self.buffer:
+        #     payload = {
+        #         "timestamp": None,  # The Logger class will handle the timestamp
+        #         "log_level": "INFO",
+        #         "name_obj_logging": "YourClass",
+        #         "message": log
+        #     }
+        #     try:
+        #         response = requests.post(f"{self.api_base_url}/api/logs", json=payload)
+        #         if response.status_code != 200:
+        #             print(f"Failed to send log to API. Status Code: {response.status_code}")
+        #     except Exception as e:
+        #         print(f"Exception while sending log to API: {e}")
+        # self.buffer = []
 
     def learn(self, n_steps=None, n_episodes=None, n_steps_per_fit=None,
               n_episodes_per_fit=None, render=False, quiet=False, record=False):
@@ -173,12 +174,30 @@ class Core(object):
 
             # Log the required information
             state, action, reward, next_state, _, _ = sample
-            log_message = f"State: {state}, Action: {action}, Reward: {reward}, Next State: {next_state}"
-            self.buffer.append(log_message)
+            # log_message = f"State: {state}, Action: {action}, Reward: {reward}, Next State: {next_state}"
+            print("Run model id:")
+            import os
+            print(os.getenv("RUN_MODEL_ID"))
+            payload = {
+                "id": str(uuid.uuid4()),
+                "run_id": os.getenv("RUN_ID"),
+                "run_model_id": os.getenv("RUN_MODEL_ID"),
+                "phase": "train",
+                "episode": self._total_episodes_counter,
+                "iteration": self._total_steps_counter,
+                "severity": "info",
+                "log": "Model step",
+                "state": str(state),
+                "action": str(action),
+                "reward": reward,
+                "created_on": datetime.datetime.now().isoformat()
+            }
+            requests.post("http://localhost:8000/api/logs", json=payload)
+            # self.buffer.append(log_message)
 
             # Check buffer size and flush if necessary
-            if len(self.buffer) >= 1024:
-                self._log_to_api()
+            # if len(self.buffer) >= 1024:
+            #     self._log_to_api()
 
             self.callback_step([sample])
 
@@ -210,8 +229,8 @@ class Core(object):
             last = sample[-1]
 
         # Flush buffer at the end of the loop if there are remaining items
-        if len(self.buffer) > 0:
-            self._log_to_api()
+        # if len(self.buffer) > 0:
+        #     self._log_to_api()
 
         self.agent.stop()
         self.mdp.stop()
