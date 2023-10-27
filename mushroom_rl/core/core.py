@@ -11,6 +11,7 @@ class Core(object):
     Implements the functions to run a generic algorithm.
 
     """
+
     def __init__(self, agent, mdp, callbacks_fit=None, callback_step=None, record_dictionary=None):
         """
         Constructor.
@@ -38,32 +39,9 @@ class Core(object):
         self._n_steps_per_fit = None
         self._n_episodes_per_fit = None
 
-        # self.api_base_url = os.getenv("API_URL", "http://localhost:8000")
-        # self.api_endpoint = f"{self.api_base_url}/api/logs"
-        # Initialize buffer
-        self.buffer = []
-
         if record_dictionary is None:
             record_dictionary = dict()
         self._record = self._build_recorder_class(**record_dictionary)
-
-    def _log_to_api(self):
-        pass
-        # # Send buffer to REST API
-        # for log in self.buffer:
-        #     payload = {
-        #         "timestamp": None,  # The Logger class will handle the timestamp
-        #         "log_level": "INFO",
-        #         "name_obj_logging": "YourClass",
-        #         "message": log
-        #     }
-        #     try:
-        #         response = requests.post(f"{self.api_base_url}/api/logs", json=payload)
-        #         if response.status_code != 200:
-        #             print(f"Failed to send log to API. Status Code: {response.status_code}")
-        #     except Exception as e:
-        #         print(f"Exception while sending log to API: {e}")
-        # self.buffer = []
 
     def learn(self, n_steps=None, n_episodes=None, n_steps_per_fit=None,
               n_episodes_per_fit=None, render=False, quiet=False, record=False):
@@ -86,8 +64,8 @@ class Core(object):
                 should be set to True.
 
         """
-        assert (n_episodes_per_fit is not None and n_steps_per_fit is None)\
-            or (n_episodes_per_fit is None and n_steps_per_fit is not None)
+        assert (n_episodes_per_fit is not None and n_steps_per_fit is None) \
+               or (n_episodes_per_fit is None and n_steps_per_fit is not None)
 
         assert (render and record) or (not record), "To record, the render flag must be set to true"
 
@@ -97,7 +75,7 @@ class Core(object):
         if n_steps_per_fit is not None:
             fit_condition = lambda: self._current_steps_counter >= self._n_steps_per_fit
         else:
-            fit_condition = lambda: self._current_episodes_counter  >= self._n_episodes_per_fit
+            fit_condition = lambda: self._current_episodes_counter >= self._n_episodes_per_fit
 
         self._run(n_steps, n_episodes, fit_condition, render, quiet, record, get_env_info=False)
 
@@ -130,16 +108,16 @@ class Core(object):
         return self._run(n_steps, n_episodes, fit_condition, render, quiet, record, get_env_info, initial_states)
 
     def _run(self, n_steps, n_episodes, fit_condition, render, quiet, record, get_env_info, initial_states=None):
-        assert n_episodes is not None and n_steps is None and initial_states is None\
-            or n_episodes is None and n_steps is not None and initial_states is None\
-            or n_episodes is None and n_steps is None and initial_states is not None
+        assert n_episodes is not None and n_steps is None and initial_states is None \
+               or n_episodes is None and n_steps is not None and initial_states is None \
+               or n_episodes is None and n_steps is None and initial_states is not None
 
-        self._n_episodes = len( initial_states) if initial_states is not None else n_episodes
+        self._n_episodes = len(initial_states) if initial_states is not None else n_episodes
 
         if n_steps is not None:
             move_condition = lambda: self._total_steps_counter < n_steps
 
-            steps_progress_bar = tqdm(total=n_steps,  dynamic_ncols=True, disable=quiet, leave=False)
+            steps_progress_bar = tqdm(total=n_steps, dynamic_ncols=True, disable=quiet, leave=False)
             episodes_progress_bar = tqdm(disable=True)
         else:
             move_condition = lambda: self._total_episodes_counter < self._n_episodes
@@ -173,34 +151,8 @@ class Core(object):
             sample, step_info = self._step(render, record)
 
             # Log the required information
-            state, action, reward, next_state, _, _ = sample
-            # log_message = f"State: {state}, Action: {action}, Reward: {reward}, Next State: {next_state}"
-            print("Run model id:")
-            import os
-            print(os.getenv("RUN_MODEL_ID"))
-            payload = {
-                "id": str(uuid.uuid4()),
-                "run_id": os.getenv("RUN_ID"),
-                "run_model_id": os.getenv("RUN_MODEL_ID"),
-                "phase": "train",
-                "episode": self._total_episodes_counter,
-                "iteration": self._total_steps_counter,
-                "severity": "info",
-                "log": "Model step",
-                "state": str(state),
-                "action": str(action),
-                "reward": reward,
-                "created_on": datetime.datetime.now().isoformat()
-            }
-            requests.post("http://localhost:8000/api/logs", json=payload)
-            # self.buffer.append(log_message)
-
-            # Check buffer size and flush if necessary
-            # if len(self.buffer) >= 1024:
-            #     self._log_to_api()
-
+            # state, action, reward, next_state, _, _ = sample
             self.callback_step([sample])
-
             self._total_steps_counter += 1
             self._current_steps_counter += 1
             steps_progress_bar.update(1)
@@ -227,10 +179,6 @@ class Core(object):
                 dataset_info = defaultdict(list)
 
             last = sample[-1]
-
-        # Flush buffer at the end of the loop if there are remaining items
-        # if len(self.buffer) > 0:
-        #     self._log_to_api()
 
         self.agent.stop()
         self.mdp.stop()
@@ -266,8 +214,8 @@ class Core(object):
             if record:
                 self._record(frame)
 
-        last = not(
-            self._episode_steps < self.mdp.info.horizon and not absorbing)
+        last = not (
+                self._episode_steps < self.mdp.info.horizon and not absorbing)
 
         state = self._state
         next_state = self._preprocess(next_state.copy())
@@ -286,7 +234,7 @@ class Core(object):
             initial_state = initial_states[self._total_episodes_counter]
 
         self.agent.episode_start()
-        
+
         self._state = self._preprocess(self.mdp.reset(initial_state).copy())
         self.agent.next_action = None
         self._episode_steps = 0
